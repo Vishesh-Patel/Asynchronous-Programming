@@ -7,6 +7,7 @@ namespace AsynchronousProgramming
     {
         //Create a delegate which has the same signature as the LongRunningMethod
         private delegate void DelLongRunningMethod();
+        private delegate int DelMultiplyNumbers(int x, int y);
 
         private static void Main()
         {
@@ -15,11 +16,24 @@ namespace AsynchronousProgramming
             //Display the current thread id
             Console.WriteLine(string.Format("Current Thread Id is {0}", Thread.CurrentThread.ManagedThreadId));
 
-            //Create an instance of the delegate passing the function name as the parameter
+            //Create an instance of DelLongRunningMethod passing the function name as the parameter
             var del = new DelLongRunningMethod(LongRunningMethod);
+
+            //Create an instance of DelMultiplyNumbers passing the function name as the parameter
+            var del2 = new DelMultiplyNumbers(MultiplyNumbers);
 
             //Call the BeginInvoke method to start executing the LongRunningMethod asynchronously
             del.BeginInvoke(null, null);
+
+            //Call the BeginInvoke method to start executing the MultiplyNumbers method asynchronously. 
+            //The BeginInvoke method here takes the two numbers we need to multiply as parameters 
+            var asyncResult = del2.BeginInvoke(4, 3,null,null);
+
+            //Call EndInvoke passing the IAsyncResult object to retrieve the result.
+            //This line will block the calling thread until the MultiplyNumbers method has completed execution
+            int multipliedNumber = del2.EndInvoke(asyncResult);
+
+            Console.WriteLine("Result of multiplication is {0}", multipliedNumber);
 
             Console.WriteLine("Main method ended.");
             Console.ReadKey();
@@ -38,13 +52,11 @@ namespace AsynchronousProgramming
             Console.WriteLine("LongRunningMethod ended");
         }
 
-        private static void MultiplyNumbers(out int threadId)
+        private static int MultiplyNumbers(int x, int y)
         {
-            Console.WriteLine("MethodWithParameters started");
             //Create a delay to replicate a long running process
-            threadId = Thread.CurrentThread.ManagedThreadId;
             Thread.Sleep(3000);
-            Console.WriteLine("MethodWithParameters ended");
+            return x * y;
         }
     }
 }
